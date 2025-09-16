@@ -201,6 +201,21 @@
             background: #fafafa;
             text-align: center;
         }
+
+        #sahneContainer {
+            position: relative;
+            min-height: 600px;
+        }
+        .sahne {
+            /* .sahne style remains for rectangular, but for semicircle will be positioned absolutely */
+        }
+        .sahne.semicircle {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 20px;
+            margin: 0;
+        }
         
         .preview-title {
             font-size: 1.8em;
@@ -321,11 +336,29 @@
                             <option value="1">1 Koridor (2 bölüm)</option>
                             <option value="2">2 Koridor (3 bölüm)</option>
                             <option value="3">3 Koridor (4 bölüm)</option>
+                            <option value="4">4 Koridor (5 bölüm)</option>
+                            <option value="5">5 Koridor (6 bölüm)</option>
+                        </select>
+                    </div>
+                    <div class="input-row">
+                        <label>Yatay Koridor Sayısı:</label>
+                        <select id="yatayKoridorTipi" onchange="updatePreview()">
+                            <option value="0">Yok</option>
+                            <option value="1">1 Yatay Koridor</option>
+                            <option value="2">2 Yatay Koridor</option>
+                            <option value="3">3 Yatay Koridor</option>
                         </select>
                     </div>
                     <div class="input-row">
                         <label>Sahne Başlığı:</label>
                         <input type="text" id="sahneBaslik" value="SAHNE" style="width: 120px;" onchange="updatePreview()">
+                    </div>
+                    <div class="input-row">
+                        <label>Düzen Tipi:</label>
+                        <select id="layoutType" onchange="updatePreview()">
+                            <option value="rectangular">rectangular</option>
+                            <option value="semicircle">semicircle</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -365,8 +398,10 @@
         let currentConfig = {
             siraSayisi: 10,
             koridorTipi: '0',
+            yatayKoridorTipi: '0',
             sahneBaslik: 'SAHNE',
-            siraKoltukları: {}
+            siraKoltukları: {},
+            layoutType: 'rectangular'
         };
 
         // Sayfa yüklendiğinde
@@ -379,16 +414,19 @@
                 case 'small':
                     currentConfig.siraSayisi = 6;
                     currentConfig.koridorTipi = '0';
+                    currentConfig.yatayKoridorTipi = '0';
                     currentConfig.siraKoltukları = {1:20, 2:22, 3:20, 4:22, 5:20, 6:18};
                     break;
                 case 'medium':
                     currentConfig.siraSayisi = 10;
                     currentConfig.koridorTipi = '1';
+                    currentConfig.yatayKoridorTipi = '0';
                     currentConfig.siraKoltukları = {1:24, 2:26, 3:24, 4:26, 5:24, 6:26, 7:24, 8:26, 9:24, 10:20};
                     break;
                 case 'large':
                     currentConfig.siraSayisi = 15;
                     currentConfig.koridorTipi = '2';
+                    currentConfig.yatayKoridorTipi = '0';
                     for(let i = 1; i <= 15; i++) {
                         currentConfig.siraKoltukları[i] = i <= 10 ? (i % 2 === 1 ? 36 : 39) : 33;
                     }
@@ -396,9 +434,12 @@
                 case 'theater':
                     currentConfig.siraSayisi = 10;
                     currentConfig.koridorTipi = '0';
+                    currentConfig.yatayKoridorTipi = '0';
                     currentConfig.siraKoltukları = {1:29, 2:30, 3:29, 4:30, 5:29, 6:30, 7:29, 8:30, 9:29, 10:24};
                     break;
             }
+            // Preset yüklenince layout tipini varsayılana çekme (her zaman rectangular)
+            currentConfig.layoutType = 'rectangular';
             updateUI();
             updatePreview();
         }
@@ -410,8 +451,9 @@
         function updateUI() {
             document.getElementById('siraSayisi').value = currentConfig.siraSayisi;
             document.getElementById('koridorTipi').value = currentConfig.koridorTipi;
+            document.getElementById('yatayKoridorTipi').value = currentConfig.yatayKoridorTipi;
             document.getElementById('sahneBaslik').value = currentConfig.sahneBaslik;
-            
+            document.getElementById('layoutType').value = currentConfig.layoutType;
             updateRowControls();
         }
 
@@ -441,14 +483,23 @@
             // Genel ayarları güncelle
             currentConfig.siraSayisi = parseInt(document.getElementById('siraSayisi').value);
             currentConfig.koridorTipi = document.getElementById('koridorTipi').value;
+            currentConfig.yatayKoridorTipi = document.getElementById('yatayKoridorTipi').value;
             currentConfig.sahneBaslik = document.getElementById('sahneBaslik').value;
-            
+            currentConfig.layoutType = document.getElementById('layoutType').value;
             updateRowControls();
             generatePreview();
             updateStats();
         }
 
         function generatePreview() {
+            if (currentConfig.layoutType === 'rectangular') {
+                generateRectangularPreview();
+            } else if (currentConfig.layoutType === 'semicircle') {
+                generateSemiCirclePreview();
+            }
+        }
+
+        function generateRectangularPreview() {
             const container = document.getElementById('sahneContainer');
             container.innerHTML = '';
             
@@ -457,6 +508,10 @@
             sahne.className = 'sahne';
             sahne.textContent = currentConfig.sahneBaslik;
             container.appendChild(sahne);
+            
+            // Yatay koridor hesaplama
+            const yatayKoridor = parseInt(currentConfig.yatayKoridorTipi);
+            const yatayBolum = yatayKoridor > 0 ? Math.ceil(currentConfig.siraSayisi / (yatayKoridor + 1)) : currentConfig.siraSayisi;
             
             // Sıralar
             for(let i = 1; i <= currentConfig.siraSayisi; i++) {
@@ -504,6 +559,133 @@
                 
                 siraDiv.appendChild(koltuklar);
                 container.appendChild(siraDiv);
+
+                // Yatay koridor ekle
+                if (yatayKoridor > 0 && i % yatayBolum === 0 && i < currentConfig.siraSayisi) {
+                    const spacer = document.createElement('div');
+                    spacer.style.height = '20px'; // boşluk
+                    container.appendChild(spacer);
+                }
+            }
+        }
+
+        function generateSemiCirclePreview() {
+            const container = document.getElementById('sahneContainer');
+            container.innerHTML = '';
+            // Container boyutunu al
+            const rect = container.getBoundingClientRect();
+            // Fallback boyutlar (ilk yüklemede rect.width küçük olabilir)
+            const width = rect.width || 1200;
+            const height = rect.height || 600;
+            // Preview merkezini container'a göre ayarla
+            const centerX = width / 2;
+            // ÜST YAY: sahne yukarıda ve koltuklar aşağı doğru yayılsın
+            const centerY = 180; // sahneye yakın bir merkez
+            const firstRowSeats = currentConfig.siraKoltukları[1] || 20;
+            let baseAngle = Math.PI; // varsayılan 180 derece
+            if (firstRowSeats > 40) baseAngle = Math.PI * 1.3;   // 234 derece
+            else if (firstRowSeats > 30) baseAngle = Math.PI * 1.2; // 216 derece
+            else if (firstRowSeats > 25) baseAngle = Math.PI * 1.1; // 198 derece
+
+            const startAngle = Math.PI / 2 - baseAngle / 2; // merkez 90°
+            const endAngle   = Math.PI / 2 + baseAngle / 2;
+            // sahne label (üstte, yay ortasında)
+            const sahne = document.createElement('div');
+            sahne.className = 'sahne semicircle';
+            sahne.textContent = currentConfig.sahneBaslik;
+            sahne.style.position = 'absolute';
+            sahne.style.left = '50%';
+            sahne.style.transform = 'translateX(-50%)';
+            sahne.style.top = '20px';
+            container.appendChild(sahne);
+
+            const yatayKoridor = parseInt(currentConfig.yatayKoridorTipi);
+            const koridor = parseInt(currentConfig.koridorTipi);
+            const totalRows = currentConfig.siraSayisi;
+            // Yatay koridorlar için: kaç satırda bir boşluk olacak?
+            const yatayBolum = yatayKoridor > 0 ? Math.ceil(totalRows / (yatayKoridor + 1)) : totalRows;
+            // For each row
+            for (let i = 1; i <= totalRows; i++) {
+                const radius = 120 + i * 40 + (yatayKoridor > 0 ? Math.floor((i - 1) / yatayBolum) * 40 : 0);
+                const seats = currentConfig.siraKoltukları[i] || 20;
+                // Dikey koridorlar için bölme
+                if (koridor > 0) {
+                    const bolumSayisi = koridor + 1;
+                    const bolumKoltukları = divideSeatsBySection(seats, bolumSayisi);
+                    // Koridorları daha belirgin yapmak için gapAngle artırıldı
+                    const gapAngle = 0.08 * Math.PI;
+                    const totalGap = gapAngle * koridor;
+                    const usableAngle = baseAngle - totalGap;
+                    let currentAngle = startAngle;
+                    let seatIdx = 1;
+                    let firstSeatPlaced = false;
+                    for (let b = 0; b < bolumSayisi; b++) {
+                        const bolumSeats = bolumKoltukları[b];
+                        let segStart = currentAngle;
+                        let segEnd = segStart + usableAngle * (bolumSeats / seats);
+                        let angleArr;
+                        if (bolumSeats === 1) {
+                            angleArr = [(segStart + segEnd) / 2];
+                        } else {
+                            angleArr = [];
+                            for (let j = 0; j < bolumSeats; j++) {
+                                angleArr.push(segStart + (j / (bolumSeats - 1)) * (segEnd - segStart));
+                            }
+                        }
+                        for (let j = 0; j < angleArr.length; j++) {
+                            const angle = angleArr[j];
+                            const x = centerX + Math.cos(angle) * radius;
+                            const y = centerY + Math.sin(angle) * radius;
+                            // Add label seat at the position of the first seat of the row
+                            if (!firstSeatPlaced) {
+                                const labelSeat = document.createElement('div');
+                                labelSeat.className = 'koltuk';
+                                labelSeat.style.position = 'absolute';
+                                labelSeat.style.left = (x - 11) + 'px';
+                                labelSeat.style.top = (y - 35) + 'px';
+                                labelSeat.style.background = '#fffacd';
+                                labelSeat.style.border = '2px solid #333';
+                                labelSeat.textContent = String.fromCharCode(64 + i);
+                                container.appendChild(labelSeat);
+                                firstSeatPlaced = true;
+                            }
+                            const seat = document.createElement('div');
+                            seat.className = 'koltuk';
+                            seat.style.position = 'absolute';
+                            seat.style.left = (x - 11) + 'px';
+                            seat.style.top = (y - 11) + 'px';
+                            seat.textContent = seatIdx++;
+                            container.appendChild(seat);
+                        }
+                        currentAngle = segEnd + gapAngle;
+                    }
+                } else {
+                    // Koridorsuz: tüm koltukları eşit aralıklarla yay
+                    for (let j = 0; j < seats; j++) {
+                        let angle = startAngle + (j / (seats - 1)) * (endAngle - startAngle);
+                        const x = centerX + Math.cos(angle) * radius;
+                        const y = centerY + Math.sin(angle) * radius;
+                        // Add label seat at the position of the first seat of the row
+                        if (j === 0) {
+                            const labelSeat = document.createElement('div');
+                            labelSeat.className = 'koltuk';
+                            labelSeat.style.position = 'absolute';
+                            labelSeat.style.left = (x - 11) + 'px';
+                            labelSeat.style.top = (y - 35) + 'px';
+                            labelSeat.style.background = '#fffacd';
+                            labelSeat.style.border = '2px solid #333';
+                            labelSeat.textContent = String.fromCharCode(64 + i);
+                            container.appendChild(labelSeat);
+                        }
+                        const seat = document.createElement('div');
+                        seat.className = 'koltuk';
+                        seat.style.position = 'absolute';
+                        seat.style.left = (x - 11) + 'px';
+                        seat.style.top = (y - 11) + 'px';
+                        seat.textContent = j + 1;
+                        container.appendChild(seat);
+                    }
+                }
             }
         }
 
@@ -549,7 +731,8 @@
         function downloadPNG() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 1800;
+            const firstRowSeats = currentConfig.siraKoltukları[1] || 20;
+            canvas.width = Math.max(1800, firstRowSeats * 45);
             canvas.height = 1400;
             
             // Beyaz arka plan
@@ -561,89 +744,212 @@
             ctx.font = 'bold 48px Arial';
             ctx.textAlign = 'center';
             ctx.fillText('Sahne Düzeni Planı', canvas.width / 2, 60);
-            
-            // Sahne
-            ctx.fillStyle = '#d3d3d3';
-            ctx.strokeStyle = '#333333';
-            ctx.lineWidth = 4;
-            const sahneWidth = 600;
-            const sahneX = (canvas.width - sahneWidth) / 2;
-            const sahneY = 100;
-            ctx.fillRect(sahneX, sahneY, sahneWidth, 80);
-            ctx.strokeRect(sahneX, sahneY, sahneWidth, 80);
-            
-            ctx.fillStyle = '#333333';
-            ctx.font = 'bold 36px Arial';
-            ctx.fillText(currentConfig.sahneBaslik, canvas.width / 2, sahneY + 50);
-            
-            // Sıralar
-            let yPos = 220;
-            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
-                const koltukSayisi = currentConfig.siraKoltukları[i] || 20;
-                
-                // Sıra harfi
-                ctx.fillStyle = '#2c3e50';
-                ctx.font = 'bold 32px Arial';
-                ctx.fillText(String.fromCharCode(64 + i), 80, yPos + 25);
-                
-                // Koltuklar
-                const koltukSize = 35;
-                const gap = 3;
-                const koridorWidth = 40;
-                const koridorSayisi = parseInt(currentConfig.koridorTipi);
-                
-                if(koridorSayisi > 0) {
-                    const bolumSayisi = koridorSayisi + 1;
-                    const bolumKoltukları = divideSeatsBySection(koltukSayisi, bolumSayisi);
-                    
-                    // Toplam genişlik hesapla (koltuklar + koridorlar)
-                    const toplamKoltukWidth = koltukSayisi * (koltukSize + gap);
-                    const toplamKoridorWidth = koridorSayisi * koridorWidth;
-                    const toplamGenislik = toplamKoltukWidth + toplamKoridorWidth;
-                    
-                    let currentX = (canvas.width - toplamGenislik) / 2;
-                    let koltukIndex = 1;
-                    
-                    for(let bolum = 0; bolum < bolumSayisi; bolum++) {
-                        // Bu bölümün koltukları
-                        for(let j = 0; j < bolumKoltukları[bolum]; j++) {
-                            drawSeat(ctx, currentX, yPos, koltukSize, koltukIndex);
-                            currentX += koltukSize + gap;
-                            koltukIndex++;
+
+            if (currentConfig.layoutType === 'semicircle') {
+                // Semicircle layout PNG render
+                // Sahne: yay üstünde, ortalanmış dikdörtgen
+                ctx.fillStyle = '#d3d3d3';
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 4;
+                const sahneWidth = 500;
+                const sahneHeight = 70;
+                const sahneX = (canvas.width - sahneWidth) / 2;
+                const sahneY = 90;
+                ctx.fillRect(sahneX, sahneY, sahneWidth, sahneHeight);
+                ctx.strokeRect(sahneX, sahneY, sahneWidth, sahneHeight);
+                ctx.fillStyle = '#333333';
+                ctx.font = 'bold 36px Arial';
+                ctx.fillText(currentConfig.sahneBaslik, canvas.width / 2, sahneY + 45);
+
+                // Koltuklar: yay şeklinde, üst yay
+                const centerX = canvas.width / 2;
+                const centerY = 260;
+                let baseAngle = Math.PI;
+                if (firstRowSeats > 40) baseAngle = Math.PI * 1.3;
+                else if (firstRowSeats > 30) baseAngle = Math.PI * 1.2;
+                else if (firstRowSeats > 25) baseAngle = Math.PI * 1.1;
+
+                const startAngle = Math.PI / 2 - baseAngle / 2;
+                const endAngle   = Math.PI / 2 + baseAngle / 2;
+                const yatayKoridor = parseInt(currentConfig.yatayKoridorTipi);
+                const koridor = parseInt(currentConfig.koridorTipi);
+                const totalRows = currentConfig.siraSayisi;
+                const yatayBolum = yatayKoridor > 0 ? Math.ceil(totalRows / (yatayKoridor + 1)) : totalRows;
+                // Draw row labels and seats
+                for (let i = 1; i <= totalRows; i++) {
+                    let baseRadius = 100 + (firstRowSeats > 25 ? 150 : 0);
+                    let radius = baseRadius + i * 50 + (yatayKoridor > 0 ? Math.floor((i - 1) / yatayBolum) * 50 : 0);
+                    const seats = currentConfig.siraKoltukları[i] || 20;
+                    let labelDrawn = false;
+                    if (koridor > 0) {
+                        const bolumSayisi = koridor + 1;
+                        const bolumKoltukları = divideSeatsBySection(seats, bolumSayisi);
+                        // Koridorları daha belirgin yapmak için gapAngle artırıldı
+                        const gapAngle = 0.08 * Math.PI;
+                        const totalGap = gapAngle * koridor;
+                        const usableAngle = baseAngle - totalGap;
+                        let currentAngle = startAngle;
+                        let seatIdx = 1;
+                        for (let b = 0; b < bolumSayisi; b++) {
+                            const bolumSeats = bolumKoltukları[b];
+                            let segStart = currentAngle;
+                            let segEnd = segStart + usableAngle * (bolumSeats / seats);
+                            let angleArr;
+                            if (bolumSeats === 1) {
+                                angleArr = [(segStart + segEnd) / 2];
+                            } else {
+                                angleArr = [];
+                                for (let j = 0; j < bolumSeats; j++) {
+                                    angleArr.push(segStart + (j / (bolumSeats - 1)) * (segEnd - segStart));
+                                }
+                            }
+                            for (let j = 0; j < angleArr.length; j++) {
+                                const angle = angleArr[j];
+                                const x = centerX + Math.cos(angle) * radius;
+                                const y = centerY + Math.sin(angle) * radius;
+                                // Draw label at the first seat of the row (first seat encountered)
+                                if (!labelDrawn) {
+                                    ctx.save();
+                                    ctx.fillStyle = '#fffacd';
+                                    ctx.strokeStyle = '#333333';
+                                    ctx.lineWidth = 2;
+                                    ctx.fillRect(x - 15, y - 45, 30, 30);
+                                    ctx.strokeRect(x - 15, y - 45, 30, 30);
+                                    ctx.fillStyle = '#333333';
+                                    ctx.font = 'bold 16px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(String.fromCharCode(64 + i), x, y - 30);
+                                    ctx.restore();
+                                    labelDrawn = true;
+                                }
+                                drawSeat(ctx, x - 15, y - 15, 30, seatIdx++);
+                            }
+                            currentAngle = segEnd + gapAngle;
                         }
-                        
-                        // Son bölüm değilse koridor boşluğu bırak
-                        if(bolum < bolumSayisi - 1) {
-                            currentX += koridorWidth;
+                    } else {
+                        // Koridorsuz
+                        for (let j = 0; j < seats; j++) {
+                            let angle = startAngle + (j / (seats - 1)) * (endAngle - startAngle);
+                            const x = centerX + Math.cos(angle) * radius;
+                            const y = centerY + Math.sin(angle) * radius;
+                            // Draw label at first seat of the row
+                            if (j === 0) {
+                                ctx.save();
+                                ctx.fillStyle = '#fffacd';
+                                ctx.strokeStyle = '#333333';
+                                ctx.lineWidth = 2;
+                                ctx.fillRect(x - 15, y - 45, 30, 30);
+                                ctx.strokeRect(x - 15, y - 45, 30, 30);
+                                ctx.fillStyle = '#333333';
+                                ctx.font = 'bold 16px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(String.fromCharCode(64 + i), x, y - 30);
+                                ctx.restore();
+                            }
+                            drawSeat(ctx, x - 15, y - 15, 30, j + 1);
                         }
-                    }
-                } else {
-                    // Koridor olmadan normal sıralama
-                    const toplamWidth = koltukSayisi * (koltukSize + gap);
-                    const startX = (canvas.width - toplamWidth) / 2;
-                    
-                    for(let j = 1; j <= koltukSayisi; j++) {
-                        drawSeat(ctx, startX + (j-1) * (koltukSize + gap), yPos, koltukSize, j);
                     }
                 }
+                // İstatistikler (alt kısma)
+                let toplamKoltuk = 0;
+                for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                    toplamKoltuk += currentConfig.siraKoltukları[i] || 0;
+                }
+                ctx.fillStyle = '#666666';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Toplam Sıra: ${currentConfig.siraSayisi}`, 50, canvas.height - 120);
+                ctx.fillText(`Toplam Koltuk: ${toplamKoltuk}`, 300, canvas.height - 120);
+                ctx.fillText(`Koridor: ${parseInt(currentConfig.koridorTipi)} adet`, 600, canvas.height - 120);
+                ctx.fillText(`Bölüm: ${parseInt(currentConfig.koridorTipi) + 1} adet`, 900, canvas.height - 120);
+                ctx.fillText(`Oluşturma Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 50, canvas.height - 80);
+            } else {
+                // Rectangular layout PNG render (mevcut kod)
+                // Sahne
+                ctx.fillStyle = '#d3d3d3';
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 4;
+                const sahneWidth = 600;
+                const sahneX = (canvas.width - sahneWidth) / 2;
+                const sahneY = 100;
+                ctx.fillRect(sahneX, sahneY, sahneWidth, 80);
+                ctx.strokeRect(sahneX, sahneY, sahneWidth, 80);
                 
-                yPos += 50;
+                ctx.fillStyle = '#333333';
+                ctx.font = 'bold 36px Arial';
+                ctx.fillText(currentConfig.sahneBaslik, canvas.width / 2, sahneY + 50);
+                
+                // Sıralar
+                let yPos = 220;
+                for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                    const koltukSayisi = currentConfig.siraKoltukları[i] || 20;
+                    
+                    // Sıra harfi
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = 'bold 32px Arial';
+                    ctx.fillText(String.fromCharCode(64 + i), 80, yPos + 25);
+                    
+                    // Koltuklar
+                    const koltukSize = 35;
+                    const gap = 3;
+                    const koridorWidth = 40;
+                    const koridorSayisi = parseInt(currentConfig.koridorTipi);
+                    
+                    if(koridorSayisi > 0) {
+                        const bolumSayisi = koridorSayisi + 1;
+                        const bolumKoltukları = divideSeatsBySection(koltukSayisi, bolumSayisi);
+                        
+                        // Toplam genişlik hesapla (koltuklar + koridorlar)
+                        const toplamKoltukWidth = koltukSayisi * (koltukSize + gap);
+                        const toplamKoridorWidth = koridorSayisi * koridorWidth;
+                        const toplamGenislik = toplamKoltukWidth + toplamKoridorWidth;
+                        
+                        let currentX = (canvas.width - toplamGenislik) / 2;
+                        let koltukIndex = 1;
+                        
+                        for(let bolum = 0; bolum < bolumSayisi; bolum++) {
+                            // Bu bölümün koltukları
+                            for(let j = 0; j < bolumKoltukları[bolum]; j++) {
+                                drawSeat(ctx, currentX, yPos, koltukSize, koltukIndex);
+                                currentX += koltukSize + gap;
+                                koltukIndex++;
+                            }
+                            
+                            // Son bölüm değilse koridor boşluğu bırak
+                            if(bolum < bolumSayisi - 1) {
+                                currentX += koridorWidth;
+                            }
+                        }
+                    } else {
+                        // Koridor olmadan normal sıralama
+                        const toplamWidth = koltukSayisi * (koltukSize + gap);
+                        const startX = (canvas.width - toplamWidth) / 2;
+                        
+                        for(let j = 1; j <= koltukSayisi; j++) {
+                            drawSeat(ctx, startX + (j-1) * (koltukSize + gap), yPos, koltukSize, j);
+                        }
+                    }
+                    
+                    yPos += 50;
+                }
+                
+                // İstatistikler (alt kısma)
+                let toplamKoltuk = 0;
+                for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                    toplamKoltuk += currentConfig.siraKoltukları[i] || 0;
+                }
+                
+                ctx.fillStyle = '#666666';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Toplam Sıra: ${currentConfig.siraSayisi}`, 50, canvas.height - 120);
+                ctx.fillText(`Toplam Koltuk: ${toplamKoltuk}`, 300, canvas.height - 120);
+                ctx.fillText(`Koridor: ${parseInt(currentConfig.koridorTipi)} adet`, 600, canvas.height - 120);
+                ctx.fillText(`Bölüm: ${parseInt(currentConfig.koridorTipi) + 1} adet`, 900, canvas.height - 120);
+                ctx.fillText(`Oluşturma Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 50, canvas.height - 80);
             }
-            
-            // İstatistikler (alt kısma)
-            let toplamKoltuk = 0;
-            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
-                toplamKoltuk += currentConfig.siraKoltukları[i] || 0;
-            }
-            
-            ctx.fillStyle = '#666666';
-            ctx.font = '24px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText(`Toplam Sıra: ${currentConfig.siraSayisi}`, 50, canvas.height - 120);
-            ctx.fillText(`Toplam Koltuk: ${toplamKoltuk}`, 300, canvas.height - 120);
-            ctx.fillText(`Koridor: ${parseInt(currentConfig.koridorTipi)} adet`, 600, canvas.height - 120);
-            ctx.fillText(`Bölüm: ${parseInt(currentConfig.koridorTipi) + 1} adet`, 900, canvas.height - 120);
-            ctx.fillText(`Oluşturma Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 50, canvas.height - 80);
             
             // İndir
             canvas.toBlob(function(blob) {
