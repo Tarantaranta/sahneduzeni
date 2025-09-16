@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahne Düzeni Oluşturucu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            min-height: 80vh;
+        }
+        
+        .controls {
+            width: 350px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-right: 2px solid #e9ecef;
+            overflow-y: auto;
+        }
+        
+        .preview-area {
+            flex: 1;
+            padding: 25px;
+            background: white;
+            overflow: auto;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .control-group h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        
+        .input-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .input-row label {
+            flex: 1;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .input-row input, .input-row select {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .input-row input:focus, .input-row select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .preset-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .preset-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .row-controls {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background: #fafafa;
+        }
+        
+        .row-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .row-control label {
+            width: 30px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .row-control input {
+            width: 60px;
+            margin-left: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .sahne-preview {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background: #fafafa;
+            text-align: center;
+        }
+        
+        .preview-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .sahne {
+            background: #d3d3d3;
+            border: 2px solid #333;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 15px;
+            margin: 0 auto 30px;
+            width: fit-content;
+            min-width: 200px;
+            border-radius: 5px;
+        }
+        
+        .sira {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+        
+        .sira-numarasi {
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 15px;
+            width: 25px;
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        .koltuklar {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .koridor {
+            width: 20px;
+        }
+        
+        .koltuk {
+            width: 22px;
+            height: 22px;
+            background: #e8e8e8;
+            border: 1px solid #333;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stats {
+            margin-top: 20px;
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .stats h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .stats p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .controls {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Sahne Düzeni Oluşturucu</h1>
+            <p>Profesyonel sahne planlarınızı kolayca oluşturun ve indirin</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>🎯 Hızlı Şablonlar</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="loadPreset('small')">Küçük Salon</button>
+                        <button class="preset-btn" onclick="loadPreset('medium')">Orta Salon</button>
+                        <button class="preset-btn" onclick="loadPreset('large')">Büyük Salon</button>
+                        <button class="preset-btn" onclick="loadPreset('theater')">Tiyatro</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>⚙️ Genel Ayarlar</h3>
+                    <div class="input-row">
+                        <label>Sıra Sayısı:</label>
+                        <input type="number" id="siraSayisi" value="10" min="1" max="30" onchange="updatePreview()">
+                    </div>
+                    <div class="input-row">
+                        <label>Koridor Sayısı:</label>
+                        <select id="koridorTipi" onchange="updatePreview()">
+                            <option value="0">Koridor Yok</option>
+                            <option value="1">1 Koridor (2 bölüm)</option>
+                            <option value="2">2 Koridor (3 bölüm)</option>
+                            <option value="3">3 Koridor (4 bölüm)</option>
+                        </select>
+                    </div>
+                    <div class="input-row">
+                        <label>Sahne Başlığı:</label>
+                        <input type="text" id="sahneBaslik" value="SAHNE" style="width: 120px;" onchange="updatePreview()">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>🪑 Sıra Ayarları</h3>
+                    <div id="rowControls" class="row-controls">
+                        <!-- Dinamik olarak oluşturulacak -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetToDefault()" style="width: 100%; margin-top: 10px;">
+                        Varsayılana Sıfırla
+                    </button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="downloadPNG()">
+                        📥 PNG İndir
+                    </button>
+                </div>
+            </div>
+            
+            <div class="preview-area">
+                <div class="preview-title">📋 Önizleme</div>
+                <div class="sahne-preview">
+                    <div id="sahneContainer">
+                        <!-- Dinamik sahne buraya gelecek -->
+                    </div>
+                    
+                    <div class="stats" id="stats">
+                        <!-- İstatistikler buraya gelecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = {
+            siraSayisi: 10,
+            koridorTipi: '0',
+            sahneBaslik: 'SAHNE',
+            siraKoltukları: {}
+        };
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            resetToDefault();
+        });
+
+        function loadPreset(type) {
+            switch(type) {
+                case 'small':
+                    currentConfig.siraSayisi = 6;
+                    currentConfig.koridorTipi = '0';
+                    currentConfig.siraKoltukları = {1:20, 2:22, 3:20, 4:22, 5:20, 6:18};
+                    break;
+                case 'medium':
+                    currentConfig.siraSayisi = 10;
+                    currentConfig.koridorTipi = '1';
+                    currentConfig.siraKoltukları = {1:24, 2:26, 3:24, 4:26, 5:24, 6:26, 7:24, 8:26, 9:24, 10:20};
+                    break;
+                case 'large':
+                    currentConfig.siraSayisi = 15;
+                    currentConfig.koridorTipi = '2';
+                    for(let i = 1; i <= 15; i++) {
+                        currentConfig.siraKoltukları[i] = i <= 10 ? (i % 2 === 1 ? 36 : 39) : 33;
+                    }
+                    break;
+                case 'theater':
+                    currentConfig.siraSayisi = 10;
+                    currentConfig.koridorTipi = '0';
+                    currentConfig.siraKoltukları = {1:29, 2:30, 3:29, 4:30, 5:29, 6:30, 7:29, 8:30, 9:29, 10:24};
+                    break;
+            }
+            updateUI();
+            updatePreview();
+        }
+
+        function resetToDefault() {
+            loadPreset('theater');
+        }
+
+        function updateUI() {
+            document.getElementById('siraSayisi').value = currentConfig.siraSayisi;
+            document.getElementById('koridorTipi').value = currentConfig.koridorTipi;
+            document.getElementById('sahneBaslik').value = currentConfig.sahneBaslik;
+            
+            updateRowControls();
+        }
+
+        function updateRowControls() {
+            const container = document.getElementById('rowControls');
+            container.innerHTML = '';
+            
+            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row-control';
+                rowDiv.innerHTML = `
+                    <label>${String.fromCharCode(64 + i)}:</label>
+                    <input type="number" value="${currentConfig.siraKoltukları[i] || 20}" 
+                           min="1" max="50" onchange="updateRowSeats(${i}, this.value)">
+                    <span style="margin-left: 10px; color: #666; font-size: 12px;">koltuk</span>
+                `;
+                container.appendChild(rowDiv);
+            }
+        }
+
+        function updateRowSeats(row, seats) {
+            currentConfig.siraKoltukları[row] = parseInt(seats);
+            updatePreview();
+        }
+
+        function updatePreview() {
+            // Genel ayarları güncelle
+            currentConfig.siraSayisi = parseInt(document.getElementById('siraSayisi').value);
+            currentConfig.koridorTipi = document.getElementById('koridorTipi').value;
+            currentConfig.sahneBaslik = document.getElementById('sahneBaslik').value;
+            
+            updateRowControls();
+            generatePreview();
+            updateStats();
+        }
+
+        function generatePreview() {
+            const container = document.getElementById('sahneContainer');
+            container.innerHTML = '';
+            
+            // Sahne
+            const sahne = document.createElement('div');
+            sahne.className = 'sahne';
+            sahne.textContent = currentConfig.sahneBaslik;
+            container.appendChild(sahne);
+            
+            // Sıralar
+            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                const siraDiv = document.createElement('div');
+                siraDiv.className = 'sira';
+                
+                const siraLabel = document.createElement('div');
+                siraLabel.className = 'sira-numarasi';
+                siraLabel.textContent = String.fromCharCode(64 + i);
+                siraDiv.appendChild(siraLabel);
+                
+                const koltuklar = document.createElement('div');
+                koltuklar.className = 'koltuklar';
+                
+                const koltukSayisi = currentConfig.siraKoltukları[i] || 20;
+                const koridorSayisi = parseInt(currentConfig.koridorTipi);
+                
+                if(koridorSayisi > 0) {
+                    // Koltukları bölümlere ayır
+                    const bolumSayisi = koridorSayisi + 1;
+                    const bolumKoltukları = divideSeatsBySection(koltukSayisi, bolumSayisi);
+                    
+                    let koltukIndex = 1;
+                    for(let bolum = 0; bolum < bolumSayisi; bolum++) {
+                        // Bu bölümün koltukları
+                        for(let j = 0; j < bolumKoltukları[bolum]; j++) {
+                            const koltuk = createSeat(koltukIndex++);
+                            koltuklar.appendChild(koltuk);
+                        }
+                        
+                        // Son bölüm değilse koridor ekle
+                        if(bolum < bolumSayisi - 1) {
+                            const koridor = document.createElement('div');
+                            koridor.className = 'koridor';
+                            koltuklar.appendChild(koridor);
+                        }
+                    }
+                } else {
+                    // Koridor olmadan
+                    for(let j = 1; j <= koltukSayisi; j++) {
+                        const koltuk = createSeat(j);
+                        koltuklar.appendChild(koltuk);
+                    }
+                }
+                
+                siraDiv.appendChild(koltuklar);
+                container.appendChild(siraDiv);
+            }
+        }
+
+        function createSeat(number) {
+            const koltuk = document.createElement('div');
+            koltuk.className = 'koltuk';
+            koltuk.textContent = number;
+            return koltuk;
+        }
+
+        function divideSeatsBySection(totalSeats, sections) {
+            const baseSeats = Math.floor(totalSeats / sections);
+            const extraSeats = totalSeats % sections;
+            const result = [];
+            
+            for(let i = 0; i < sections; i++) {
+                result[i] = baseSeats + (i < extraSeats ? 1 : 0);
+            }
+            
+            return result;
+        }
+
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            let toplamKoltuk = 0;
+            
+            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                toplamKoltuk += currentConfig.siraKoltukları[i] || 0;
+            }
+            
+            const koridorTipleri = ['Yok', '1 Koridor', '2 Koridor', '3 Koridor'];
+            
+            stats.innerHTML = `
+                <h4>📊 İstatistikler</h4>
+                <p><strong>Toplam Sıra:</strong> ${currentConfig.siraSayisi}</p>
+                <p><strong>Toplam Koltuk:</strong> ${toplamKoltuk}</p>
+                <p><strong>Koridor:</strong> ${koridorTipleri[parseInt(currentConfig.koridorTipi)]}</p>
+                <p><strong>Bölüm Sayısı:</strong> ${parseInt(currentConfig.koridorTipi) + 1}</p>
+                <p><strong>Ortalama Sıra Kapasitesi:</strong> ${Math.round(toplamKoltuk / currentConfig.siraSayisi)}</p>
+            `;
+        }
+
+        function downloadPNG() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1800;
+            canvas.height = 1400;
+            
+            // Beyaz arka plan
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Başlık
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sahne Düzeni Planı', canvas.width / 2, 60);
+            
+            // Sahne
+            ctx.fillStyle = '#d3d3d3';
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 4;
+            const sahneWidth = 600;
+            const sahneX = (canvas.width - sahneWidth) / 2;
+            const sahneY = 100;
+            ctx.fillRect(sahneX, sahneY, sahneWidth, 80);
+            ctx.strokeRect(sahneX, sahneY, sahneWidth, 80);
+            
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 36px Arial';
+            ctx.fillText(currentConfig.sahneBaslik, canvas.width / 2, sahneY + 50);
+            
+            // Sıralar
+            let yPos = 220;
+            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                const koltukSayisi = currentConfig.siraKoltukları[i] || 20;
+                
+                // Sıra harfi
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 32px Arial';
+                ctx.fillText(String.fromCharCode(64 + i), 80, yPos + 25);
+                
+                // Koltuklar
+                const koltukSize = 35;
+                const gap = 3;
+                const koridorWidth = 40;
+                const koridorSayisi = parseInt(currentConfig.koridorTipi);
+                
+                if(koridorSayisi > 0) {
+                    const bolumSayisi = koridorSayisi + 1;
+                    const bolumKoltukları = divideSeatsBySection(koltukSayisi, bolumSayisi);
+                    
+                    // Toplam genişlik hesapla (koltuklar + koridorlar)
+                    const toplamKoltukWidth = koltukSayisi * (koltukSize + gap);
+                    const toplamKoridorWidth = koridorSayisi * koridorWidth;
+                    const toplamGenislik = toplamKoltukWidth + toplamKoridorWidth;
+                    
+                    let currentX = (canvas.width - toplamGenislik) / 2;
+                    let koltukIndex = 1;
+                    
+                    for(let bolum = 0; bolum < bolumSayisi; bolum++) {
+                        // Bu bölümün koltukları
+                        for(let j = 0; j < bolumKoltukları[bolum]; j++) {
+                            drawSeat(ctx, currentX, yPos, koltukSize, koltukIndex);
+                            currentX += koltukSize + gap;
+                            koltukIndex++;
+                        }
+                        
+                        // Son bölüm değilse koridor boşluğu bırak
+                        if(bolum < bolumSayisi - 1) {
+                            currentX += koridorWidth;
+                        }
+                    }
+                } else {
+                    // Koridor olmadan normal sıralama
+                    const toplamWidth = koltukSayisi * (koltukSize + gap);
+                    const startX = (canvas.width - toplamWidth) / 2;
+                    
+                    for(let j = 1; j <= koltukSayisi; j++) {
+                        drawSeat(ctx, startX + (j-1) * (koltukSize + gap), yPos, koltukSize, j);
+                    }
+                }
+                
+                yPos += 50;
+            }
+            
+            // İstatistikler (alt kısma)
+            let toplamKoltuk = 0;
+            for(let i = 1; i <= currentConfig.siraSayisi; i++) {
+                toplamKoltuk += currentConfig.siraKoltukları[i] || 0;
+            }
+            
+            ctx.fillStyle = '#666666';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Toplam Sıra: ${currentConfig.siraSayisi}`, 50, canvas.height - 120);
+            ctx.fillText(`Toplam Koltuk: ${toplamKoltuk}`, 300, canvas.height - 120);
+            ctx.fillText(`Koridor: ${parseInt(currentConfig.koridorTipi)} adet`, 600, canvas.height - 120);
+            ctx.fillText(`Bölüm: ${parseInt(currentConfig.koridorTipi) + 1} adet`, 900, canvas.height - 120);
+            ctx.fillText(`Oluşturma Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 50, canvas.height - 80);
+            
+            // İndir
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `sahne_duzeni_${Date.now()}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png', 1.0);
+        }
+
+        function drawSeat(ctx, x, y, size, number) {
+            // Koltuk arka planı
+            ctx.fillStyle = '#e8e8e8';
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            
+            // Yuvarlanmış köşeli dikdörtgen
+            const radius = 6;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + size - radius, y);
+            ctx.quadraticCurveTo(x + size, y, x + size, y + radius);
+            ctx.lineTo(x + size, y + size - radius);
+            ctx.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
+            ctx.lineTo(x + radius, y + size);
+            ctx.quadraticCurveTo(x, y + size, x, y + size - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Numara
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(number.toString(), x + size/2, y + size/2 + 6);
+        }
+    </script>
+</body>
+</html>
